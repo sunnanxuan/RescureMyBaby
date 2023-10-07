@@ -1,6 +1,7 @@
 """
 版本说明：
        'v.1.0.1'：框架搭建
+       'v.1.0.2'：视线游戏开始和关闭
 
 """
 
@@ -9,14 +10,29 @@ import pygame,time,random
 
 COLOR_BLACK=pygame.Color(0,0,0)
 COLOR_RED=pygame.Color(255,0,0)
-version="v1.0.1"
+version="v1.0.2"
 
 class MainGame():
-    def __init__(self):
-        pass
+    window = None
+    SCREEN_HEIGHT = 700
+    SCREEN_WIDTH = 1100
+    C_p1 = None
+    Enemy_list = []
+    Enemy_count = 20
+    Bullet_list = []
+    Enemy_bullet_list = []
+    Explode_list = []
+    Wall_list = []
+    Steels_list=[]
 
     def startgame(self):
-        pass
+        pygame.display.init()
+        MainGame.window = pygame.display.set_mode([MainGame.SCREEN_WIDTH, MainGame.SCREEN_HEIGHT])
+        pygame.display.set_caption("RescureMyBay" + version)
+        while True:
+            MainGame.window.fill(COLOR_BLACK)
+            self.getEvents()
+            pygame.display.update()
 
     def creatMyCharacter(self):
         pass
@@ -49,13 +65,17 @@ class MainGame():
         pass
 
     def getEvents(self):
-        pass
+        eventlist = pygame.event.get()
+        for event in eventlist:
+            if event.type == pygame.QUIT:
+                self.endgame()
 
     def displayExplodes(self):
         pass
 
     def endgame(self):
-        pass
+        print('Thank You')
+        exit()
 
 
 class BaseItem(pygame.sprite.Sprite):
