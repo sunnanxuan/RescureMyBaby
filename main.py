@@ -2,6 +2,7 @@
 版本说明：
        'v.1.0.1'：框架搭建
        'v.1.0.2'：视线游戏开始和关闭
+       'v.1.0.3'：创建墙壁
 
 """
 
@@ -10,12 +11,12 @@ import pygame,time,random
 
 COLOR_BLACK=pygame.Color(0,0,0)
 COLOR_RED=pygame.Color(255,0,0)
-version="v1.0.2"
+version="v1.0.3"
 
 class MainGame():
     window = None
     SCREEN_HEIGHT = 700
-    SCREEN_WIDTH = 1100
+    SCREEN_WIDTH = 1200
     C_p1 = None
     Enemy_list = []
     Enemy_count = 20
@@ -23,15 +24,20 @@ class MainGame():
     Enemy_bullet_list = []
     Explode_list = []
     Wall_list = []
-    Steels_list=[]
+    Steel_list=[]
 
     def startgame(self):
         pygame.display.init()
         MainGame.window = pygame.display.set_mode([MainGame.SCREEN_WIDTH, MainGame.SCREEN_HEIGHT])
+        self.creatWalls()
+        self.creatSteels()
         pygame.display.set_caption("RescureMyBay" + version)
+
         while True:
             MainGame.window.fill(COLOR_BLACK)
             self.getEvents()
+            self.blitWalls()
+            self.blitSteels()
             pygame.display.update()
 
     def creatMyCharacter(self):
@@ -41,19 +47,44 @@ class MainGame():
         pass
 
     def creatWalls(self):
-        pass
+        position=[(1120,100),(1140,100),(1160,100),(400,420),(400,440),(400,460),(20,300),(40,300),(60,300),(500,340),(500,360),(500,380)]
+        for left,top in position:
+            wall=Walls(left,top)
+            MainGame.Wall_list.append(wall)
 
     def creatSteels(self):
-        pass
+        for i in range(60):
+            MainGame.Steel_list.append(Steels(i*20,680))
+            MainGame.Steel_list.append(Steels(i*20,0))
+            if i<35:
+                MainGame.Steel_list.append(Steels(0, i * 20))
+            if i<31:
+                MainGame.Steel_list.append(Steels(1180, i * 20))
+            if i<20:
+                if i<6 or i>8:
+                    MainGame.Steel_list.append(Steels(400, 300 + i * 20))
+                if i>3:
+                    MainGame.Steel_list.append(Steels(i * 20, 300))
+                if i<17:
+                    MainGame.Steel_list.append(Steels(500, i * 20))
+            if i<40:
+                MainGame.Steel_list.append(Steels(400 + i * 20, 400))
+            if i<5:
+                MainGame.Steel_list.append(Steels(1090, i * 20))
+            if i<2:
+                MainGame.Steel_list.append(Steels(1090 + i * 20, 100))
 
     def blitEnemy(self):
         pass
 
     def blitWalls(self):
-        pass
+        for wall in MainGame.Wall_list:
+            wall.displaywall()
+
 
     def blitSteels(self):
-        pass
+        for steel in MainGame.Steel_list:
+            steel.displaysteel()
 
     def blitBullet(self):
         pass
@@ -167,20 +198,30 @@ class Explode():
 
 
 
-class Wall():
+class Walls():
     def __init__(self, left, top):
-        pass
+        self.img = pygame.image.load('img/walls.gif')
+        self.image=pygame.transform.scale(self.img, (20, 20))
+        self.rect = self.image.get_rect()
+        self.rect.left = left
+        self.rect.top = top
+        self.live = True
+        self.hp = 3
 
-    def dispalywall(self):
-        pass
+    def displaywall(self):
+        MainGame.window.blit(self.image,self.rect)
 
 
 class Steels():
-    def __init__(self):
-        pass
+    def __init__(self,left,top):
+        self.img = pygame.image.load('img/steels.gif')
+        self.image = pygame.transform.scale(self.img, (20, 20))
+        self.rect = self.image.get_rect()
+        self.rect.left = left
+        self.rect.top = top
 
-    def displaySteels(self):
-        pass
+    def displaysteel(self):
+        MainGame.window.blit(self.image,self.rect)
 
 
 
