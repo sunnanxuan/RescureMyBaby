@@ -14,7 +14,7 @@ import pygame,time,random
 
 COLOR_BLACK=pygame.Color(0,0,0)
 COLOR_RED=pygame.Color(255,0,0)
-version="v1.0.5"
+version="v1.0.6"
 
 class MainGame():
     window = None
@@ -33,7 +33,6 @@ class MainGame():
         pygame.display.init()
         MainGame.window = pygame.display.set_mode([MainGame.SCREEN_WIDTH, MainGame.SCREEN_HEIGHT])
         MainGame.C_P1= MyCharacter(1160, 630)
-        self.creatMyCharacter()
         self.creatWalls()
         self.creatSteels()
         pygame.display.set_caption("RescureMyBay" + version)
@@ -48,6 +47,8 @@ class MainGame():
             else:
                 del MainGame.C_P1
                 MainGame.C_P1=None
+            if MainGame.C_P1 and not MainGame.C_P1.stop==True:
+                MainGame.C_P1.move()
 
             self.blitWalls()
             self.blitSteels()
@@ -122,6 +123,33 @@ class MainGame():
         for event in eventlist:
             if event.type == pygame.QUIT:
                 self.endgame()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE and not MainGame.C_P1:
+                    self.creatMyCharacter()
+                if MainGame.C_P1 and MainGame.C_P1.live:
+                    if event.key == pygame.K_LEFT:
+                        print("向左调头")
+                        MainGame.C_P1.direction = 'L'
+                        MainGame.C_P1.stop = False
+
+                    elif event.key == pygame.K_RIGHT:
+                        print("向右调头")
+                        MainGame.C_P1.direction = 'R'
+                        MainGame.C_P1.stop = False
+                    elif event.key == pygame.K_UP:
+                        print("向上调头")
+                        MainGame.C_P1.direction = 'U'
+                        MainGame.C_P1.stop = False
+                    elif event.key == pygame.K_DOWN:
+                        print("向下调头")
+                        MainGame.C_P1.direction = 'D'
+                        MainGame.C_P1.stop = False
+                    elif event.key == pygame.K_SPACE:
+                        pass
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT or event.key == pygame.K_UP or event.key == pygame.K_DOWN:
+                    if MainGame.C_P1 and MainGame.C_P1.live:
+                        MainGame.C_P1.stop = True
 
     def displayExplodes(self):
         pass
@@ -150,6 +178,13 @@ class Baby(BaseItem):
 
 class Character(BaseItem):
     def __init__(self,left,top):
+        self.speed = 15
+        self.stop = True
+        self.live = True
+        self.stop_imgs={'U':pygame.image.load('img/U0.png'),
+                        'D':pygame.image.load('img/D0.png'),
+                        'R':pygame.image.load('img/R0.png'),
+                        'L':pygame.image.load('img/L0.png')}
         self.U = [pygame.image.load("img/U1.png"),
                   pygame.image.load("img/U2.png"),
                   pygame.image.load("img/U3.png"),
@@ -183,19 +218,24 @@ class Character(BaseItem):
         self.imgs = {'U': self.U,'D': self.D,'R': self.R,'L': self.L}
         self.step = 0
         self.direction = 'U'
-        self.img = self.imgs[self.direction][0]
-        self.image=pygame.transform.scale(self.img, (50, 50))
+        self.stop_img = self.stop_imgs[self.direction]
+        self.image=pygame.transform.scale(self.stop_img, (50, 50))
         self.rect = self.image.get_rect()
         self.rect.left = left
         self.rect.top = top
-        self.speed = 20
-        self.stop = True
-        self.live = True
         self.oldleft = self.rect.left
         self.oldtop = self.rect.top
 
     def move(self):
-        pass
+        if self.direction == 'L':
+            self.rect.left -= self.speed
+        elif self.direction == 'R':
+            self.rect.left += self.speed
+        elif self.direction == 'U':
+            self.rect.top -= self.speed
+        elif self.direction == 'D':
+            self.rect.top += self.speed
+
 
     def action(self):
         pass
@@ -213,17 +253,23 @@ class Character(BaseItem):
         pass
 
     def displayCharacter(self):
-        if self.step<len(self.imgs[self.direction]):
-            MainGame.window.blit(self.image, self.rect)
-            self.img=self.imgs[self.direction][self.step]
-            self.image = pygame.transform.scale(self.img, (50, 50))
-            self.step += 1
+        if self.stop==False:
+            if self.step<len(self.imgs[self.direction]):
+                MainGame.window.blit(self.image, self.rect)
+                self.img=self.imgs[self.direction][self.step]
+                self.image = pygame.transform.scale(self.img, (50, 50))
+                self.step += 1
+            else:
+                self.step=0
+                MainGame.window.blit(self.image, self.rect)
+                self.img = self.imgs[self.direction][self.step]
+                self.image = pygame.transform.scale(self.img, (50, 50))
+                self.step += 1
         else:
-            self.step=0
+            self.stop_img = self.stop_imgs[self.direction]
+            self.image = pygame.transform.scale(self.stop_img, (50, 50))
             MainGame.window.blit(self.image, self.rect)
-            self.img = self.imgs[self.direction][self.step]
-            self.image = pygame.transform.scale(self.img, (50, 50))
-            self.step += 1
+
 
 
 class MyCharacter(Character):
