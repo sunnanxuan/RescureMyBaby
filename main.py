@@ -4,6 +4,7 @@
        'v.1.0.2'：视线游戏开始和关闭
        'v.1.0.3'：创建墙壁
        'v.1.0.4'：设置文字
+       'v.1.0.5'：创建我方角色
 
 """
 
@@ -12,13 +13,13 @@ import pygame,time,random
 
 COLOR_BLACK=pygame.Color(0,0,0)
 COLOR_RED=pygame.Color(255,0,0)
-version="v1.0.4"
+version="v1.0.5"
 
 class MainGame():
     window = None
     SCREEN_HEIGHT = 700
     SCREEN_WIDTH = 1200
-    C_p1 = None
+    C_P1 = None
     Enemy_list = []
     Enemy_count = 20
     Bullet_list = []
@@ -30,6 +31,8 @@ class MainGame():
     def startgame(self):
         pygame.display.init()
         MainGame.window = pygame.display.set_mode([MainGame.SCREEN_WIDTH, MainGame.SCREEN_HEIGHT])
+        MainGame.C_P1= MyCharacter(1160, 630)
+        self.creatMyCharacter()
         self.creatWalls()
         self.creatSteels()
         pygame.display.set_caption("RescureMyBay" + version)
@@ -39,12 +42,20 @@ class MainGame():
             self.getEvents()
             MainGame.window.blit(self.getTextSurface("当前生命值:%d" % 20), (25, 20))
             MainGame.window.blit(self.getTextSurface("剩余子弹数量:%d" % 20), (25, 40))
+            if MainGame.C_P1 and MainGame.C_P1.live:
+                MainGame.C_P1.displayCharacter()
+            else:
+                del MainGame.C_P1
+                MainGame.C_P1=None
+
             self.blitWalls()
             self.blitSteels()
+            time.sleep(0.1)
             pygame.display.update()
 
     def creatMyCharacter(self):
-        pass
+        MainGame.C_P1= MyCharacter(1160, 630)
+
 
     def creatEnemy(self):
         pass
@@ -137,8 +148,50 @@ class Baby(BaseItem):
 
 
 class Character(BaseItem):
-    def __init__(self):
-        pass
+    def __init__(self,left,top):
+        self.U = [pygame.image.load("img/U1.png"),
+                  pygame.image.load("img/U2.png"),
+                  pygame.image.load("img/U3.png"),
+                  pygame.image.load("img/U4.png"),
+                  pygame.image.load("img/U5.png"),
+                  pygame.image.load("img/U6.png"),
+                  pygame.image.load("img/U7.png")]
+        self.D = [pygame.image.load("img/D1.png"),
+                  pygame.image.load("img/D2.png"),
+                  pygame.image.load("img/D3.png"),
+                  pygame.image.load("img/D4.png"),
+                  pygame.image.load("img/D5.png"),
+                  pygame.image.load("img/D6.png"),
+                  pygame.image.load("img/D7.png"),
+                  pygame.image.load("img/D8.png")]
+        self.L = [pygame.image.load("img/L1.png"),
+                  pygame.image.load("img/L2.png"),
+                  pygame.image.load("img/L3.png"),
+                  pygame.image.load("img/L4.png"),
+                  pygame.image.load("img/L5.png"),
+                  pygame.image.load("img/L6.png"),
+                  pygame.image.load("img/L7.png")]
+        self.R = [pygame.image.load("img/R1.png"),
+                  pygame.image.load("img/R2.png"),
+                  pygame.image.load("img/R3.png"),
+                  pygame.image.load("img/R4.png"),
+                  pygame.image.load("img/R5.png"),
+                  pygame.image.load("img/R6.png"),
+                  pygame.image.load("img/R7.png"),
+                  pygame.image.load("img/R8.png")]
+        self.imgs = {'U': self.U,'D': self.D,'R': self.R,'L': self.L}
+        self.step = 0
+        self.direction = 'U'
+        self.img = self.imgs[self.direction][0]
+        self.image=pygame.transform.scale(self.img, (50, 50))
+        self.rect = self.image.get_rect()
+        self.rect.left = left
+        self.rect.top = top
+        self.speed = 20
+        self.stop = True
+        self.live = True
+        self.oldleft = self.rect.left
+        self.oldtop = self.rect.top
 
     def move(self):
         pass
@@ -159,8 +212,17 @@ class Character(BaseItem):
         pass
 
     def displayCharacter(self):
-        pass
-
+        if self.step<len(self.imgs[self.direction]):
+            MainGame.window.blit(self.image, self.rect)
+            self.img=self.imgs[self.direction][self.step]
+            self.image = pygame.transform.scale(self.img, (50, 50))
+            self.step += 1
+        else:
+            self.step=0
+            MainGame.window.blit(self.image, self.rect)
+            self.img = self.imgs[self.direction][self.step]
+            self.image = pygame.transform.scale(self.img, (50, 50))
+            self.step += 1
 
 
 class MyCharacter(Character):
