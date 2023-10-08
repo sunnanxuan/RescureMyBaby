@@ -3,6 +3,7 @@
        'v.1.0.1'：框架搭建
        'v.1.0.2'：视线游戏开始和关闭
        'v.1.0.3'：创建墙壁
+       'v.1.0.4'：设置文字
 
 """
 
@@ -11,7 +12,7 @@ import pygame,time,random
 
 COLOR_BLACK=pygame.Color(0,0,0)
 COLOR_RED=pygame.Color(255,0,0)
-version="v1.0.3"
+version="v1.0.4"
 
 class MainGame():
     window = None
@@ -36,6 +37,8 @@ class MainGame():
         while True:
             MainGame.window.fill(COLOR_BLACK)
             self.getEvents()
+            MainGame.window.blit(self.getTextSurface("当前生命值:%d" % 20), (25, 20))
+            MainGame.window.blit(self.getTextSurface("剩余子弹数量:%d" % 20), (25, 40))
             self.blitWalls()
             self.blitSteels()
             pygame.display.update()
@@ -92,8 +95,15 @@ class MainGame():
     def blitEnemyBullet(self):
         pass
 
-    def getTextSurface(self,text):
+    def blitBaby(self):
         pass
+
+
+    def getTextSurface(self,text):
+        pygame.font.init()
+        font = pygame.font.SysFont("kaiti", 18)
+        textsurface = font.render(text, True, COLOR_RED)
+        return textsurface
 
     def getEvents(self):
         eventlist = pygame.event.get()
@@ -112,6 +122,18 @@ class MainGame():
 class BaseItem(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
+        
+
+class Baby(BaseItem):
+    def __init__(self,left,top):
+        self.img = pygame.image.load('img/baby.png')
+        self.image = pygame.transform.scale(self.img, (20, 20))
+        self.rect = self.image.get_rect()
+        self.rect.left = left
+        self.rect.top = top
+
+    def displaybaby(self):
+        MainGame.window.blit(self.image,self.rect)
 
 
 class Character(BaseItem):
