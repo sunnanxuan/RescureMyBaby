@@ -11,6 +11,7 @@
        'v.1.0.9'：创建子弹
        'v.1.0.10'：修复墙壁位置bug
        'v.1.0.11'：创建敌方子弹
+       'v.1.0.12'：创建爆炸效果
 
 """
 
@@ -19,7 +20,7 @@ import pygame,time,random
 
 COLOR_BLACK=pygame.Color(0,0,0)
 COLOR_RED=pygame.Color(255,0,0)
-version="v1.0.11"
+version="v1.0.12"
 
 class MainGame():
     window = None
@@ -64,6 +65,7 @@ class MainGame():
             self.blitSteels()
             self.blitBullet()
             self.blitEnemyBullet()
+            self.displayExplodes()
             time.sleep(0.1)
             pygame.display.update()
 
@@ -208,7 +210,11 @@ class MainGame():
                         MainGame.C_P1.stop = True
 
     def displayExplodes(self):
-        pass
+        for explode in MainGame.Explode_list:
+            if explode.live:
+                explode.displayexplode()
+            else:
+                MainGame.Explode_list.remove(explode)
 
     def endgame(self):
         print('Thank You')
@@ -309,8 +315,6 @@ class Character(BaseItem):
             if pygame.sprite.collide_rect(self, wall):
                 self.stay()
 
-    #def shot(self):
-        #return Bullet(self)
 
     def displayCharacter(self):
         if self.stop==False:
@@ -432,7 +436,9 @@ class Bullet(BaseItem):
                 self.live = False
                 eC.hp-=2
                 if eC.hp<=0:
+                    MainGame.Explode_list.append(Explode(eC))
                     eC.live=False
+
 
     def hitWalls(self):
         for wall in MainGame.Wall_list:
@@ -459,12 +465,30 @@ class Bullet(BaseItem):
 
 
 class Explode():
-    def __init__(self, tank):
-        pass
+    def __init__(self, C):
+        self.rect = C.rect
+        self.step = 0
+        self.live = True
+        self.imgs = [pygame.image.load("img/blast1.gif"),
+                     pygame.image.load("img/blast2.gif"),
+                     pygame.image.load("img/blast3.gif"),
+                     pygame.image.load("img/blast4.gif"),
+                     pygame.image.load("img/blast5.gif"),
+                     pygame.image.load("img/blast6.gif"),
+                     pygame.image.load("img/blast7.gif"),
+                     pygame.image.load("img/blast8.gif")]
+        self.img = self.imgs[0]
+        self.image=pygame.transform.scale(self.img, (50, 50))
 
     def displayexplode(self):
-        pass
-
+        if self.step < len(self.imgs):
+            MainGame.window.blit(self.image, self.rect)
+            self.img = self.imgs[self.step]
+            self.image = pygame.transform.scale(self.img, (50, 50))
+            self.step += 1
+        else:
+            self.step = 0
+            self.live = False
 
 
 class Walls():
