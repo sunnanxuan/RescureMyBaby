@@ -13,6 +13,7 @@
        'v.1.0.11'：创建敌方子弹
        'v.1.0.12'：创建爆炸效果
        'v.1.0.13'：创建baby
+       'v.1.0.14'：添加音效
 
 """
 
@@ -21,7 +22,7 @@ import pygame,time,random
 
 COLOR_BLACK=pygame.Color(0,0,0)
 COLOR_RED=pygame.Color(255,0,0)
-version="v1.0.13"
+version="v1.0.14"
 
 class MainGame():
     window = None
@@ -41,6 +42,7 @@ class MainGame():
         pygame.display.init()
         MainGame.window = pygame.display.set_mode([MainGame.SCREEN_WIDTH, MainGame.SCREEN_HEIGHT])
         MainGame.C_P1= MyCharacter(1160, 630)
+        self.creatMyCharacter()
         self.creatEnemy()
         self.creatWalls()
         self.creatSteels()
@@ -73,6 +75,8 @@ class MainGame():
 
     def creatMyCharacter(self):
         MainGame.C_P1= MyCharacter(1160, 630)
+        music = Music('img/start.wav')
+        music.play()
 
 
     def creatEnemy(self):
@@ -206,6 +210,8 @@ class MainGame():
                             MainGame.MyBullet_count-=1
                             m = Bullet(MainGame.C_P1)
                             MainGame.Bullet_list.append(m)
+                            music = Music('img/fire.wav')
+                            music.play()
                         else:
                             print('子弹数量不足')
             if event.type == pygame.KEYUP:
@@ -444,6 +450,8 @@ class Bullet(BaseItem):
                 eC.hp-=2
                 if eC.hp<=0:
                     MainGame.Explode_list.append(Explode(eC))
+                    music = Music('img/blast.wav')
+                    music.play()
                     eC.live=False
 
 
@@ -453,6 +461,8 @@ class Bullet(BaseItem):
                 self.live = False
                 wall.hp -= 2
                 if wall.hp <= 0:
+                    music = Music('img/blast.wav')
+                    music.play()
                     wall.live = False
 
     def hitSteels(self):
@@ -464,6 +474,8 @@ class Bullet(BaseItem):
 
     def hitMyCharacter(self):
         if pygame.sprite.collide_rect(self, MainGame.C_P1):
+            music = Music('img/hit.wav')
+            music.play()
             MainGame.C_P1.hp-=2
             self.live = False
             if MainGame.C_P1.hp<=0:
@@ -527,10 +539,12 @@ class Steels():
 
 class Music():
     def __init__(self, fileName):
-        pass
-
+        self.fileName = fileName
+        pygame.mixer.init()
+        pygame.mixer.music.load(self.fileName)
     def play(self):
-        pass
+        pygame.mixer.music.play()
+
 
 
 MainGame().startgame()
