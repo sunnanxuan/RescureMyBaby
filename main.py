@@ -8,6 +8,8 @@
        'v.1.0.6'：实现我方角色的移动
        'v.1.0.7'：创建敌方角色
        'v.1.0.8'：实现墙壁碰撞效果
+       'v.1.0.9'：创建子弹
+       'v.1.0.10'：修复墙壁位置bug
 
 """
 
@@ -16,7 +18,7 @@ import pygame,time,random
 
 COLOR_BLACK=pygame.Color(0,0,0)
 COLOR_RED=pygame.Color(255,0,0)
-version="v1.0.8"
+version="v1.0.10"
 
 class MainGame():
     window = None
@@ -30,6 +32,7 @@ class MainGame():
     Explode_list = []
     Wall_list = []
     Steel_list=[]
+    MyBullet_count=100
 
     def startgame(self):
         pygame.display.init()
@@ -44,7 +47,7 @@ class MainGame():
             MainGame.window.fill(COLOR_BLACK)
             self.getEvents()
             MainGame.window.blit(self.getTextSurface("当前生命值:%d" % 20), (25, 20))
-            MainGame.window.blit(self.getTextSurface("剩余子弹数量:%d" % 20), (25, 40))
+            MainGame.window.blit(self.getTextSurface("剩余子弹数量:%d" % MainGame.MyBullet_count), (25, 40))
             if MainGame.C_P1 and MainGame.C_P1.live:
                 MainGame.C_P1.displayCharacter()
                 MainGame.C_P1.hitWalls()
@@ -57,6 +60,7 @@ class MainGame():
             self.blitEnemy()
             self.blitWalls()
             self.blitSteels()
+            self.blitBullet()
             time.sleep(0.1)
             pygame.display.update()
 
@@ -75,7 +79,7 @@ class MainGame():
 
 
     def creatWalls(self):
-        position=[(1120,100),(1140,100),(1160,100),(400,420),(400,440),(400,460),(20,300),(40,300),(60,300),(500,340),(500,360),(500,380)]
+        position=[(1090,100),(1110,100),(1130,100),(1150,100),(1170,100),(400,480),(400,440),(400,460),(20,300),(40,300),(60,300),(500,340),(500,360),(500,320)]
         for left,top in position:
             wall=Walls(left,top)
             MainGame.Wall_list.append(wall)
@@ -89,18 +93,17 @@ class MainGame():
             if i<31:
                 MainGame.Steel_list.append(Steels(1180, i * 20))
             if i<20:
-                if i<6 or i>8:
+                if i<7 or i>9:
                     MainGame.Steel_list.append(Steels(400, 300 + i * 20))
                 if i>3:
                     MainGame.Steel_list.append(Steels(i * 20, 300))
-                if i<17:
+                if i<16 or i>18:
                     MainGame.Steel_list.append(Steels(500, i * 20))
             if i<40:
                 MainGame.Steel_list.append(Steels(400 + i * 20, 400))
             if i<5:
                 MainGame.Steel_list.append(Steels(1090, i * 20))
-            if i<2:
-                MainGame.Steel_list.append(Steels(1090 + i * 20, 100))
+
 
     def blitEnemy(self):
         for eC in MainGame.Enemy_list:
@@ -114,7 +117,10 @@ class MainGame():
 
     def blitWalls(self):
         for wall in MainGame.Wall_list:
-            wall.displaywall()
+            if wall.live:
+                wall.displaywall()
+            else:
+                MainGame.Wall_list.remove(wall)
 
 
     def blitSteels(self):
@@ -122,7 +128,15 @@ class MainGame():
             steel.displaysteel()
 
     def blitBullet(self):
-        pass
+        for bullet in MainGame.Bullet_list:
+            if bullet.live:
+                bullet.dispalybullet()
+                bullet.bulletMove()
+                bullet.hitEnemy()
+                bullet.hitWalls()
+                bullet.hitSteels()
+            else:
+                MainGame.Bullet_list.remove(bullet)
 
     def blitEnemyBullet(self):
         pass
@@ -164,7 +178,13 @@ class MainGame():
                         MainGame.C_P1.direction = 'D'
                         MainGame.C_P1.stop = False
                     elif event.key == pygame.K_SPACE:
-                        pass
+                        print('发射子弹')
+                        if MainGame.MyBullet_count>0:
+                            MainGame.MyBullet_count-=1
+                            m = Bullet(MainGame.C_P1)
+                            MainGame.Bullet_list.append(m)
+                        else:
+                            print('子弹数量不足')
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT or event.key == pygame.K_UP or event.key == pygame.K_DOWN:
                     if MainGame.C_P1 and MainGame.C_P1.live:
@@ -351,23 +371,72 @@ class Enemy(Character):
 
 
 class Bullet(BaseItem):
-    def __init__(self, c):
-        pass
+    def __init__(self, C):
+        self.image = pygame.image.load('img/enemymissile.gif')
+        self.direction = C.direction
+        self.rect = self.image.get_rect()
+        if self.direction == 'U':
+            self.rect.left = C.rect.left + C.rect.width / 2 - self.rect.width / 2
+            self.rect.top = C.rect.top - self.rect.height
+        elif self.direction == 'D':
+            self.rect.left = C.rect.left + C.rect.width / 2 - self.rect.width / 2
+            self.rect.top = C.rect.top + C.rect.height
+        elif self.direction == 'L':
+            self.rect.left = C.rect.left - self.rect.width
+            self.rect.top = C.rect.top + C.rect.height / 2 - self.rect.height / 2
+        elif self.direction == 'R':
+            self.rect.left = C.rect.left + C.rect.width
+            self.rect.top = C.rect.top + C.rect.height / 2 - self.rect.height / 2
+        self.speed = 40
+        self.live = True
 
     def bulletMove(self):
-        pass
+        if self.direction == 'U':
+            self.rect.top -= self.speed
+
+        elif self.direction == 'D':
+            self.rect.top += self.speed
+
+        elif self.direction == 'L':
+            self.rect.left -= self.speed
+        elif self.direction == 'R':
+            if self.rect.left < MainGame.SCREEN_WIDTH - self.rect.width:
+                self.rect.left += self.speed
+            else:
+                self.live = False
 
     def dispalybullet(self):
-        pass
+        MainGame.window.blit(self.image,self.rect)
 
-    def hitEnemyTank(self):
-        pass
+    def hitEnemy(self):
+        for eC in MainGame.Enemy_list:
+            if pygame.sprite.collide_rect(eC, self):
+                self.live = False
+                eC.hp-=2
+                if eC.hp<=0:
+                    eC.live=False
 
     def hitWalls(self):
-        pass
+        for wall in MainGame.Wall_list:
+            if pygame.sprite.collide_rect(wall, self):
+                self.live = False
+                wall.hp -= 2
+                if wall.hp <= 0:
+                    wall.live = False
+
+    def hitSteels(self):
+        for steel in MainGame.Steel_list:
+            if pygame.sprite.collide_rect(steel, self):
+                self.live = False
+
+
 
     def hitMyCharacter(self):
-        pass
+        if pygame.sprite.collide_rect(self, MainGame.C_P1):
+            MainGame.C_P1.hp-=2
+            self.live = False
+            if MainGame.C_P1.hp<=0:
+                MainGame.C_P1.live = False
 
 
 
