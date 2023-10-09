@@ -10,6 +10,7 @@
        'v.1.0.8'：实现墙壁碰撞效果
        'v.1.0.9'：创建子弹
        'v.1.0.10'：修复墙壁位置bug
+       'v.1.0.11'：创建敌方子弹
 
 """
 
@@ -18,7 +19,7 @@ import pygame,time,random
 
 COLOR_BLACK=pygame.Color(0,0,0)
 COLOR_RED=pygame.Color(255,0,0)
-version="v1.0.10"
+version="v1.0.11"
 
 class MainGame():
     window = None
@@ -58,9 +59,11 @@ class MainGame():
             if MainGame.C_P1 and not MainGame.C_P1.stop==True:
                 MainGame.C_P1.move()
             self.blitEnemy()
+            self.creatEnemyBullet()
             self.blitWalls()
             self.blitSteels()
             self.blitBullet()
+            self.blitEnemyBullet()
             time.sleep(0.1)
             pygame.display.update()
 
@@ -104,6 +107,11 @@ class MainGame():
             if i<5:
                 MainGame.Steel_list.append(Steels(1090, i * 20))
 
+    def creatEnemyBullet(self):
+        for EC in MainGame.Enemy_list:
+            num = random.randint(1, 1000)
+            if num <= 20:
+                MainGame.Enemy_bullet_list.append(Bullet(EC))
 
     def blitEnemy(self):
         for eC in MainGame.Enemy_list:
@@ -130,7 +138,7 @@ class MainGame():
     def blitBullet(self):
         for bullet in MainGame.Bullet_list:
             if bullet.live:
-                bullet.dispalybullet()
+                bullet.displaybullet()
                 bullet.bulletMove()
                 bullet.hitEnemy()
                 bullet.hitWalls()
@@ -139,7 +147,16 @@ class MainGame():
                 MainGame.Bullet_list.remove(bullet)
 
     def blitEnemyBullet(self):
-        pass
+        for eBullet in MainGame.Enemy_bullet_list:
+            if eBullet.live:
+                eBullet.displaybullet()
+                eBullet.bulletMove()
+                eBullet.hitWalls()
+                eBullet.hitSteels()
+                if MainGame.C_P1 and MainGame.C_P1.live:
+                    eBullet.hitMyCharacter()
+            else:
+                MainGame.Enemy_bullet_list.remove(eBullet)
 
     def blitBaby(self):
         pass
@@ -292,8 +309,8 @@ class Character(BaseItem):
             if pygame.sprite.collide_rect(self, wall):
                 self.stay()
 
-    def shot(self):
-        pass
+    #def shot(self):
+        #return Bullet(self)
 
     def displayCharacter(self):
         if self.stop==False:
@@ -370,6 +387,7 @@ class Enemy(Character):
 
 
 
+
 class Bullet(BaseItem):
     def __init__(self, C):
         self.image = pygame.image.load('img/enemymissile.gif')
@@ -405,7 +423,7 @@ class Bullet(BaseItem):
             else:
                 self.live = False
 
-    def dispalybullet(self):
+    def displaybullet(self):
         MainGame.window.blit(self.image,self.rect)
 
     def hitEnemy(self):
