@@ -12,6 +12,7 @@
        'v.1.0.10'：修复墙壁位置bug
        'v.1.0.11'：创建敌方子弹
        'v.1.0.12'：创建爆炸效果
+       'v.1.0.13'：创建baby
 
 """
 
@@ -20,7 +21,7 @@ import pygame,time,random
 
 COLOR_BLACK=pygame.Color(0,0,0)
 COLOR_RED=pygame.Color(255,0,0)
-version="v1.0.12"
+version="v1.0.13"
 
 class MainGame():
     window = None
@@ -59,6 +60,7 @@ class MainGame():
                 MainGame.C_P1=None
             if MainGame.C_P1 and not MainGame.C_P1.stop==True:
                 MainGame.C_P1.move()
+            self.blitBaby()
             self.blitEnemy()
             self.creatEnemyBullet()
             self.blitWalls()
@@ -161,7 +163,9 @@ class MainGame():
                 MainGame.Enemy_bullet_list.remove(eBullet)
 
     def blitBaby(self):
-        pass
+        baby=Baby(1120,30)
+        baby.displaybaby()
+
 
 
     def getTextSurface(self,text):
@@ -229,7 +233,7 @@ class BaseItem(pygame.sprite.Sprite):
 class Baby(BaseItem):
     def __init__(self,left,top):
         self.img = pygame.image.load('img/baby.png')
-        self.image = pygame.transform.scale(self.img, (20, 20))
+        self.image = pygame.transform.scale(self.img, (50, 50))
         self.rect = self.image.get_rect()
         self.rect.left = left
         self.rect.top = top
@@ -341,6 +345,9 @@ class MyCharacter(Character):
         super(MyCharacter,self).__init__(left,top)
 
     def hitEnemy(self):
+        pass
+
+    def hitBaby(self):
         pass
 
 
