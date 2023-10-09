@@ -6,6 +6,7 @@
        'v.1.0.4'：设置文字
        'v.1.0.5'：创建我方角色
        'v.1.0.6':实现我方角色的移动
+       'v.1.0.7':创建敌方角色
 
 """
 
@@ -14,7 +15,7 @@ import pygame,time,random
 
 COLOR_BLACK=pygame.Color(0,0,0)
 COLOR_RED=pygame.Color(255,0,0)
-version="v1.0.6"
+version="v1.0.7"
 
 class MainGame():
     window = None
@@ -22,7 +23,7 @@ class MainGame():
     SCREEN_WIDTH = 1200
     C_P1 = None
     Enemy_list = []
-    Enemy_count = 20
+    Enemy_count = 24
     Bullet_list = []
     Enemy_bullet_list = []
     Explode_list = []
@@ -33,6 +34,7 @@ class MainGame():
         pygame.display.init()
         MainGame.window = pygame.display.set_mode([MainGame.SCREEN_WIDTH, MainGame.SCREEN_HEIGHT])
         MainGame.C_P1= MyCharacter(1160, 630)
+        self.creatEnemy()
         self.creatWalls()
         self.creatSteels()
         pygame.display.set_caption("RescureMyBay" + version)
@@ -49,7 +51,7 @@ class MainGame():
                 MainGame.C_P1=None
             if MainGame.C_P1 and not MainGame.C_P1.stop==True:
                 MainGame.C_P1.move()
-
+            self.blitEnemy()
             self.blitWalls()
             self.blitSteels()
             time.sleep(0.1)
@@ -60,7 +62,14 @@ class MainGame():
 
 
     def creatEnemy(self):
-        pass
+        tops= [100,200,500,600]
+        for i in range(MainGame.Enemy_count//4):
+            for top in tops:
+                speed = random.randint(10, 20)
+                left = random.randint(1, 5)
+                eC = Enemy(left * 190, top, speed)
+                MainGame.Enemy_list.append(eC)
+
 
     def creatWalls(self):
         position=[(1120,100),(1140,100),(1160,100),(400,420),(400,440),(400,460),(20,300),(40,300),(60,300),(500,340),(500,360),(500,380)]
@@ -91,7 +100,12 @@ class MainGame():
                 MainGame.Steel_list.append(Steels(1090 + i * 20, 100))
 
     def blitEnemy(self):
-        pass
+        for eC in MainGame.Enemy_list:
+            if eC.live:
+                eC.displayCharacter()
+                eC.randomMove()
+            else:
+                MainGame.Enemy_list.remove(eC)
 
     def blitWalls(self):
         for wall in MainGame.Wall_list:
@@ -283,13 +297,40 @@ class MyCharacter(Character):
 
 class Enemy(Character):
     def __init__(self, left, top, speed):
-        pass
+        #super(Enemy, self).__init__(left, top)
+        self.stop_imgs = {'U': pygame.image.load('img/EU.png'),
+                    'D': pygame.image.load('img/ED.png'),
+                    'R': pygame.image.load('img/ER.png'),
+                    'L': pygame.image.load('img/EL.png')}
+        self.direction = self.randDirection()
+        self.stop_img = self.stop_imgs[self.direction]
+        self.image = pygame.transform.scale(self.stop_img, (50, 50))
+        self.rect = self.image.get_rect()
+        self.rect.left = left
+        self.rect.top = top
+        self.speed = speed
+        self.step = 50
+        self.stop = True
+        self.live=True
 
     def randDirection(self):
-        pass
+        num = random.randint(1, 4)
+        if num == 1:
+            return 'U'
+        elif num == 2:
+            return 'D'
+        elif num == 3:
+            return 'L'
+        elif num == 4:
+            return 'R'
 
     def randomMove(self):
-        pass
+        if self.step <= 0:
+            self.direction = self.randDirection()
+            self.step = 50
+        else:
+            self.move()
+            self.step -= 1
 
     def hitMyCharacter(self):
         pass
