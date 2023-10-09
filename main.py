@@ -5,8 +5,9 @@
        'v.1.0.3'：创建墙壁
        'v.1.0.4'：设置文字
        'v.1.0.5'：创建我方角色
-       'v.1.0.6':实现我方角色的移动
-       'v.1.0.7':创建敌方角色
+       'v.1.0.6'：实现我方角色的移动
+       'v.1.0.7'：创建敌方角色
+       'v.1.0.8'：实现墙壁碰撞效果
 
 """
 
@@ -15,7 +16,7 @@ import pygame,time,random
 
 COLOR_BLACK=pygame.Color(0,0,0)
 COLOR_RED=pygame.Color(255,0,0)
-version="v1.0.7"
+version="v1.0.8"
 
 class MainGame():
     window = None
@@ -46,6 +47,8 @@ class MainGame():
             MainGame.window.blit(self.getTextSurface("剩余子弹数量:%d" % 20), (25, 40))
             if MainGame.C_P1 and MainGame.C_P1.live:
                 MainGame.C_P1.displayCharacter()
+                MainGame.C_P1.hitWalls()
+                MainGame.C_P1.hitSteels()
             else:
                 del MainGame.C_P1
                 MainGame.C_P1=None
@@ -104,6 +107,8 @@ class MainGame():
             if eC.live:
                 eC.displayCharacter()
                 eC.randomMove()
+                eC.hitSteels()
+                eC.hitWalls()
             else:
                 MainGame.Enemy_list.remove(eC)
 
@@ -195,6 +200,7 @@ class Character(BaseItem):
         self.speed = 15
         self.stop = True
         self.live = True
+        self.hp=10
         self.stop_imgs={'U':pygame.image.load('img/U0.png'),
                         'D':pygame.image.load('img/D0.png'),
                         'R':pygame.image.load('img/R0.png'),
@@ -241,6 +247,8 @@ class Character(BaseItem):
         self.oldtop = self.rect.top
 
     def move(self):
+        self.oldleft = self.rect.left
+        self.oldtop = self.rect.top
         if self.direction == 'L':
             self.rect.left -= self.speed
         elif self.direction == 'R':
@@ -250,18 +258,19 @@ class Character(BaseItem):
         elif self.direction == 'D':
             self.rect.top += self.speed
 
-
-    def action(self):
-        pass
-
     def stay(self):
-        pass
+        self.rect.left = self.oldleft
+        self.rect.top = self.oldtop
 
     def hitSteels(self):
-        pass
+        for steel in MainGame.Steel_list:
+            if pygame.sprite.collide_rect(self, steel):
+                self.stay()
 
     def hitWalls(self):
-        pass
+        for wall in MainGame.Wall_list:
+            if pygame.sprite.collide_rect(self, wall):
+                self.stay()
 
     def shot(self):
         pass
@@ -312,6 +321,7 @@ class Enemy(Character):
         self.step = 50
         self.stop = True
         self.live=True
+        self.hp=2
 
     def randDirection(self):
         num = random.randint(1, 4)
@@ -378,7 +388,7 @@ class Walls():
         self.rect.left = left
         self.rect.top = top
         self.live = True
-        self.hp = 3
+        self.hp = 6
 
     def displaywall(self):
         MainGame.window.blit(self.image,self.rect)
