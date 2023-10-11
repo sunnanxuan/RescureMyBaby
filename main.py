@@ -16,6 +16,7 @@
        'v.1.0.14'：添加音效
        'v.1.0.15'：我方与敌方碰撞效果
        'v.1.0.16'：营救baby&修改撞墙效果
+       'v.1.0.17'：修改敌方子弹打墙效果&实现胜利和失败的效果
 
 """
 
@@ -24,7 +25,8 @@ import pygame,time,random
 
 COLOR_BLACK=pygame.Color(0,0,0)
 COLOR_RED=pygame.Color(255,0,0)
-version="v1.0.16"
+COLOR_YELLOW=pygame.Color(255,255,0)
+version="v1.0.17"
 
 class MainGame():
     window = None
@@ -40,6 +42,7 @@ class MainGame():
     Steel_list=[]
     MyBullet_count=100
     Victory=False
+    GameOver=False
     baby=None
 
     def startgame(self):
@@ -71,6 +74,7 @@ class MainGame():
             else:
                 del MainGame.C_P1
                 MainGame.C_P1=None
+                MainGame.GameOver=True
             if MainGame.C_P1 and not MainGame.C_P1.stop==True:
                 MainGame.C_P1.move()
 
@@ -82,7 +86,9 @@ class MainGame():
             self.blitEnemyBullet()
             self.displayExplodes()
             if MainGame.Victory:
-                print('胜利')
+                MainGame.window.blit(self.getend('VICTORY'), (350, 250))
+            if MainGame.GameOver:
+                MainGame.window.blit(self.getend('GAMEOVER'), (250, 250))
             time.sleep(0.1)
             pygame.display.update()
 
@@ -173,7 +179,7 @@ class MainGame():
             if eBullet.live:
                 eBullet.displaybullet()
                 eBullet.bulletMove()
-                eBullet.hitWalls()
+                eBullet.enemybullethitWalls()
                 eBullet.hitSteels()
                 if MainGame.C_P1 and MainGame.C_P1.live:
                     eBullet.hitMyCharacter()
@@ -185,6 +191,13 @@ class MainGame():
         pygame.font.init()
         font = pygame.font.SysFont("kaiti", 18)
         textsurface = font.render(text, True, COLOR_RED)
+        return textsurface
+
+    def getend(self,text):
+        pygame.font.init()
+
+        font = pygame.font.SysFont("arial", 150)
+        textsurface = font.render(text, True, COLOR_YELLOW)
         return textsurface
 
     def getEvents(self):
@@ -374,7 +387,7 @@ class MyCharacter(Character):
         for wall in MainGame.Wall_list:
             if pygame.sprite.collide_rect(self, wall):
                 self.stay()
-                wall.hp-=1
+                wall.hp-=5
                 if wall.hp <= 0:
                     music = Music('img/blast.wav')
                     music.play()
@@ -501,6 +514,11 @@ class Bullet(BaseItem):
                     music.play()
                     wall.live = False
 
+    def enemybullethitWalls(self):
+        for wall in MainGame.Wall_list:
+            if pygame.sprite.collide_rect(wall, self):
+                self.live = False
+
     def hitSteels(self):
         for steel in MainGame.Steel_list:
             if pygame.sprite.collide_rect(steel, self):
@@ -584,3 +602,4 @@ class Music():
 
 
 MainGame().startgame()
+
