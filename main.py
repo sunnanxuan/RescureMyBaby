@@ -15,6 +15,7 @@
        'v.1.0.13'：创建baby
        'v.1.0.14'：添加音效
        'v.1.0.15'：我方与敌方碰撞效果
+       'v.1.0.16'：营救baby&修改撞墙效果
 
 """
 
@@ -23,7 +24,7 @@ import pygame,time,random
 
 COLOR_BLACK=pygame.Color(0,0,0)
 COLOR_RED=pygame.Color(255,0,0)
-version="v1.0.15"
+version="v1.0.16"
 
 class MainGame():
     window = None
@@ -38,11 +39,14 @@ class MainGame():
     Wall_list = []
     Steel_list=[]
     MyBullet_count=100
+    Victory=False
+    baby=None
 
     def startgame(self):
         pygame.display.init()
         MainGame.window = pygame.display.set_mode([MainGame.SCREEN_WIDTH, MainGame.SCREEN_HEIGHT])
         MainGame.C_P1= MyCharacter(1160, 630)
+        MainGame.baby=Baby(1120,30)
         self.creatMyCharacter()
         self.creatEnemy()
         self.creatWalls()
@@ -52,6 +56,7 @@ class MainGame():
         while True:
             MainGame.window.fill(COLOR_BLACK)
             self.getEvents()
+            MainGame.baby.displaybaby()
             if MainGame.C_P1 and MainGame.C_P1.live:
                 MainGame.window.blit(self.getTextSurface("当前生命值:%d" % MainGame.C_P1.hp), (25, 20))
             else:
@@ -62,12 +67,13 @@ class MainGame():
                 MainGame.C_P1.hitWalls()
                 MainGame.C_P1.hitSteels()
                 MainGame.C_P1.hitEnemy()
+                MainGame.C_P1.rescureBaby()
             else:
                 del MainGame.C_P1
                 MainGame.C_P1=None
             if MainGame.C_P1 and not MainGame.C_P1.stop==True:
                 MainGame.C_P1.move()
-            self.blitBaby()
+
             self.blitEnemy()
             self.creatEnemyBullet()
             self.blitWalls()
@@ -75,6 +81,8 @@ class MainGame():
             self.blitBullet()
             self.blitEnemyBullet()
             self.displayExplodes()
+            if MainGame.Victory:
+                print('胜利')
             time.sleep(0.1)
             pygame.display.update()
 
@@ -171,11 +179,6 @@ class MainGame():
                     eBullet.hitMyCharacter()
             else:
                 MainGame.Enemy_bullet_list.remove(eBullet)
-
-    def blitBaby(self):
-        baby=Baby(1120,30)
-        baby.displaybaby()
-
 
 
     def getTextSurface(self,text):
@@ -326,10 +329,6 @@ class Character(BaseItem):
             if pygame.sprite.collide_rect(self, steel):
                 self.stay()
 
-    def hitWalls(self):
-        for wall in MainGame.Wall_list:
-            if pygame.sprite.collide_rect(self, wall):
-                self.stay()
 
 
     def displayCharacter(self):
@@ -367,8 +366,19 @@ class MyCharacter(Character):
                     self.live=False
 
 
-    def hitBaby(self):
-        pass
+    def rescureBaby(self):
+        if pygame.sprite.collide_rect(self, MainGame.baby):
+            MainGame.Victory=True
+
+    def hitWalls(self):
+        for wall in MainGame.Wall_list:
+            if pygame.sprite.collide_rect(self, wall):
+                self.stay()
+                wall.hp-=1
+                if wall.hp <= 0:
+                    music = Music('img/blast.wav')
+                    music.play()
+                    wall.live = False
 
 
 
@@ -419,8 +429,14 @@ class Enemy(Character):
             if MainGame.C_P1.hp <= 0:
                 MainGame.C_P1.live = False
 
-    def shot(self):
-        pass
+    def hitWalls(self):
+        for wall in MainGame.Wall_list:
+            if pygame.sprite.collide_rect(self, wall):
+                self.stay()
+                wall.hp-=1
+
+
+
 
 
 
