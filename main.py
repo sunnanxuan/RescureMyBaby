@@ -14,6 +14,7 @@
        'v.1.0.12'：创建爆炸效果
        'v.1.0.13'：创建baby
        'v.1.0.14'：添加音效
+       'v.1.0.15'：我方与敌方碰撞效果
 
 """
 
@@ -22,7 +23,7 @@ import pygame,time,random
 
 COLOR_BLACK=pygame.Color(0,0,0)
 COLOR_RED=pygame.Color(255,0,0)
-version="v1.0.14"
+version="v1.0.15"
 
 class MainGame():
     window = None
@@ -51,12 +52,16 @@ class MainGame():
         while True:
             MainGame.window.fill(COLOR_BLACK)
             self.getEvents()
-            MainGame.window.blit(self.getTextSurface("当前生命值:%d" % 20), (25, 20))
+            if MainGame.C_P1 and MainGame.C_P1.live:
+                MainGame.window.blit(self.getTextSurface("当前生命值:%d" % MainGame.C_P1.hp), (25, 20))
+            else:
+                MainGame.window.blit(self.getTextSurface("当前生命值:%d" % 0), (25, 20))
             MainGame.window.blit(self.getTextSurface("剩余子弹数量:%d" % MainGame.MyBullet_count), (25, 40))
             if MainGame.C_P1 and MainGame.C_P1.live:
                 MainGame.C_P1.displayCharacter()
                 MainGame.C_P1.hitWalls()
                 MainGame.C_P1.hitSteels()
+                MainGame.C_P1.hitEnemy()
             else:
                 del MainGame.C_P1
                 MainGame.C_P1=None
@@ -128,6 +133,7 @@ class MainGame():
                 eC.randomMove()
                 eC.hitSteels()
                 eC.hitWalls()
+                eC.hitMyCharacter()
             else:
                 MainGame.Enemy_list.remove(eC)
 
@@ -351,7 +357,15 @@ class MyCharacter(Character):
         super(MyCharacter,self).__init__(left,top)
 
     def hitEnemy(self):
-        pass
+        for EC in MainGame.Enemy_list:
+            if pygame.sprite.collide_rect(self, EC):
+                self.stay()
+                music = Music('img/hit.wav')
+                music.play()
+                self.hp-=0.1
+                if self.hp<=0:
+                    self.live=False
+
 
     def hitBaby(self):
         pass
@@ -397,7 +411,13 @@ class Enemy(Character):
             self.step -= 1
 
     def hitMyCharacter(self):
-        pass
+        if MainGame.C_P1 and pygame.sprite.collide_rect(self, MainGame.C_P1):
+            self.stay()
+            music = Music('img/hit.wav')
+            music.play()
+            MainGame.C_P1.hp -= 0.1
+            if MainGame.C_P1.hp <= 0:
+                MainGame.C_P1.live = False
 
     def shot(self):
         pass
